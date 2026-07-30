@@ -76,6 +76,9 @@ Elasticsearch data is stored in the named Docker volume `elasticsearch-data`, so
 | [`persistent_ingest.ipynb`](persistent_ingest.ipynb) | The persistence-focused workflow. It filters LLM Zoomcamp FAQs, creates and inspects SQLitesearch databases, connects a persistent index to `RAGBase`, bulk-indexes the FAQ collection into Elasticsearch, and verifies that the Elasticsearch index survives a Docker restart. |
 | [`sqlite_rag.ipynb`](sqlite_rag.ipynb) | Reopens an existing SQLitesearch index in `faq.db`, runs full-text searches, and plugs that persistent index into `RAGBase` for an OpenAI-generated answer. Run an ingestion workflow first if `faq.db` does not yet exist. |
 | [`agent.ipynb`](agent.ipynb) | Extends the RAG workflow with OpenAI function calling. It exposes FAQ retrieval as an application-owned tool, executes the model's tool request, demonstrates both `previous_response_id` and manually replayed history, and calculates token usage and estimated cost. |
+| [`agentic_loop.ipynb`](agentic_loop.ipynb) | Builds the agent loop from first principles, including repeated tool calls, conversation memory, response-status checks, iteration limits, and grounding rules for off-topic questions. |
+| [`frameworks.ipynb`](frameworks.ipynb) | Reimplements the handwritten loop with ToyAIKit, compares manual and generated tool schemas, inspects `LoopResult`, and demonstrates follow-up and interactive conversations. |
+| [`other-frameworks.ipynb`](other-frameworks.ipynb) | Compares several production-oriented agent frameworks, offers selection criteria, and explains when a simpler non-agent workflow is preferable. |
 
 ## Python and configuration files
 
@@ -85,7 +88,7 @@ Elasticsearch data is stored in the named Docker volume `elasticsearch-data`, so
 | [`rag_helper.py`](rag_helper.py) | Defines the reusable `RAGBase` class. It owns retrieval, context formatting, prompt construction, the OpenAI Responses API call, and the complete RAG sequence while accepting any index with a compatible `search` method. |
 | [`main.py`](main.py) | The generated project entry-point placeholder. It currently prints a greeting and is not part of the RAG workflow. |
 | [`docker-compose.yml`](docker-compose.yml) | Runs a single-node, security-disabled Elasticsearch 8.17.6 container on port 9200 with a health check and persistent named volume. |
-| [`pyproject.toml`](pyproject.toml) | Declares Python 3.12+ and the project dependencies: Elasticsearch, Jupyter, MinSearch, OpenAI, python-dotenv, Requests, and SQLitesearch. |
+| [`pyproject.toml`](pyproject.toml) | Declares Python 3.12+ and the project dependencies: Elasticsearch, Jupyter, MinSearch, OpenAI, python-dotenv, Requests, SQLitesearch, and ToyAIKit. |
 | [`.python-version`](.python-version) | Pins the development Python version to 3.12. |
 | [`.gitignore`](.gitignore) | Excludes the virtual environment, API-key file, and generated SQLite database, shared-memory, and write-ahead-log files. |
 
@@ -106,4 +109,7 @@ The following are runtime artifacts rather than source files:
 3. Run [`rag_cleaned.ipynb`](rag_cleaned.ipynb) for the compact in-memory workflow.
 4. Use [`persistent_ingest.ipynb`](persistent_ingest.ipynb) to create and inspect persistent indexes.
 5. Reopen the SQLite index with [`sqlite_rag.ipynb`](sqlite_rag.ipynb) and compare its retrieval with Elasticsearch.
-6. Finish with [`agent.ipynb`](agent.ipynb) to let the model decide when and how to search through function calling.
+6. Use [`agent.ipynb`](agent.ipynb) to let the model decide when and how to search through function calling.
+7. Build the complete repeated tool-use loop in [`agentic_loop.ipynb`](agentic_loop.ipynb).
+8. Compare the handwritten loop with ToyAIKit in [`frameworks.ipynb`](frameworks.ipynb).
+9. Finish with [`other-frameworks.ipynb`](other-frameworks.ipynb) to compare framework choices and decide when an agent is warranted.
