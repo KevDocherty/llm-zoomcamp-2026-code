@@ -1,115 +1,179 @@
-# LLM Zoomcamp 2026 — Module 1
+# LLM Zoomcamp 2026
 
-A learning workspace for Module 1 of the 2026 LLM Zoomcamp. The repository builds a retrieval-augmented generation (RAG) assistant over the DataTalks.Club FAQ data, starting with direct model calls and an in-memory text index, then progressing to persistent SQLite and Elasticsearch indexes and an agentic retrieval workflow.
+This repository contains my notebooks, supporting code, and experiments for the 2026 [LLM Zoomcamp](https://github.com/DataTalksClub/llm-zoomcamp).
 
-The notebooks are intentionally incremental: [`notebook.ipynb`](notebook.ipynb) records the detailed learning path, while the smaller notebooks and Python modules isolate reusable parts of the pipeline.
+The repository is organized by course module. Each numbered module directory keeps its notebooks, helper code, generated data, and service configuration together, while the root `pyproject.toml` and `uv.lock` provide one reproducible Python environment for the whole course.
 
-## What the project demonstrates
+## Repository structure
 
-- Loading and flattening the DataTalks.Club FAQ datasets.
-- Retrieving relevant FAQ entries with MinSearch, SQLite full-text search, or Elasticsearch.
-- Building grounded prompts from retrieved context.
-- Calling the OpenAI Responses API and inspecting response structure and usage.
-- Reusing the same RAG orchestration with different search backends.
-- Persisting indexes locally with SQLite or in Docker-backed Elasticsearch.
-- Letting a model invoke FAQ search through OpenAI function calling, then returning the tool result for a grounded answer.
+```text
+llm-zoomcamp-2026-code/
+├── 01-agentic-rag/
+│   ├── 01-rag-basics.ipynb
+│   ├── 02-rag-cleaned.ipynb
+│   ├── 03-rag-ingest.ipynb
+│   ├── 04-persistent-ingest.ipynb
+│   ├── 05-sqlite-rag.ipynb
+│   ├── 06-function-calling.ipynb
+│   ├── 07-agentic-loop.ipynb
+│   ├── 08-frameworks.ipynb
+│   ├── 09-other-frameworks.ipynb
+│   ├── ingest.py
+│   ├── rag_helper.py
+│   └── docker-compose.yml
+├── README.md
+├── pyproject.toml
+└── uv.lock
+```
+
+Additional numbered module directories will be added as the course progresses.
+
+## Modules
+
+| Module | Topic | Status |
+| --- | --- | --- |
+| [`01-agentic-rag`](01-agentic-rag/) | Retrieval-augmented generation, persistence, function calling, agent loops, and agent frameworks | Complete |
+| `02-vector-search` | Vector search and embeddings | In progress |
 
 ## Prerequisites
 
 - Python 3.12 or newer
-- [uv](https://docs.astral.sh/uv/) for Python environment and dependency management
-- Docker with Docker Compose for the Elasticsearch examples
-- An OpenAI API key for cells that generate answers
+- [uv](https://docs.astral.sh/uv/) for dependency and environment management
+- Docker with Docker Compose for examples that use Elasticsearch
+- An OpenAI API key for notebooks that call OpenAI models
 
 ## Setup
 
-Install the project dependencies:
+From the repository root, install the locked dependencies:
 
-~~~bash
+```bash
 uv sync
-~~~
+```
 
-Create a local `.env` file for API-backed examples:
+Create a root `.env` file for API-backed examples:
 
-~~~text
+```text
 OPENAI_API_KEY=your-key-here
-~~~
+```
 
-The `.env` file and generated database files are excluded by `.gitignore`.
+The `.env` file, virtual environment, generated databases, and notebook checkpoints are excluded by `.gitignore`.
 
-Start Jupyter:
+Start Jupyter from the repository root:
 
-~~~bash
+```bash
 uv run jupyter lab
-~~~
+```
 
-## Elasticsearch
+Open notebooks through their module directory. The Module 1 notebooks keep their helper modules in the same directory, so imports such as `from ingest import load_faq_data` continue to work naturally.
 
-Start the single-node Elasticsearch 8.17.6 service:
+## Module 1: Agentic RAG
 
-~~~bash
-docker compose up -d
-~~~
+Module 1 builds a retrieval-augmented course assistant over the DataTalks.Club FAQ data. It progresses from direct model calls and in-memory retrieval to persistent search, OpenAI function calling, a handwritten agent loop, and an introduction to agent frameworks.
 
-Check that it is healthy:
+### What the module demonstrates
 
-~~~bash
-docker compose ps
+- Loading and flattening the DataTalks.Club FAQ datasets
+- Retrieving relevant entries with MinSearch, SQLite full-text search, and Elasticsearch
+- Building grounded prompts from retrieved context
+- Calling the OpenAI Responses API and inspecting response structure and usage
+- Reusing RAG orchestration with different search backends
+- Persisting indexes with SQLite and Docker-backed Elasticsearch
+- Exposing FAQ retrieval as a model-callable tool
+- Building an agent loop with conversation memory, iteration limits, and grounding rules
+- Comparing handwritten orchestration with ToyAIKit and other agent frameworks
+
+### Notebooks
+
+| Notebook | Purpose |
+| --- | --- |
+| [`01-rag-basics.ipynb`](01-agentic-rag/01-rag-basics.ipynb) | The full exploratory walkthrough: direct LLM calls, FAQ ingestion, MinSearch retrieval, prompt construction, response inspection, token cost, course filtering, and Elasticsearch. |
+| [`02-rag-cleaned.ipynb`](01-agentic-rag/02-rag-cleaned.ipynb) | A concise end-to-end in-memory RAG example using the reusable helper modules. |
+| [`03-rag-ingest.ipynb`](01-agentic-rag/03-rag-ingest.ipynb) | A minimal ingestion and retrieval smoke test. |
+| [`04-persistent-ingest.ipynb`](01-agentic-rag/04-persistent-ingest.ipynb) | Creates and inspects persistent SQLite indexes, indexes the FAQ collection in Elasticsearch, and verifies persistence. |
+| [`05-sqlite-rag.ipynb`](01-agentic-rag/05-sqlite-rag.ipynb) | Reopens an existing SQLite search index and uses it as the retrieval backend for RAG. |
+| [`06-function-calling.ipynb`](01-agentic-rag/06-function-calling.ipynb) | Exposes FAQ search through OpenAI function calling and demonstrates two approaches to conversation history. |
+| [`07-agentic-loop.ipynb`](01-agentic-rag/07-agentic-loop.ipynb) | Builds the repeated model–tool loop from first principles, including response checks and iteration limits. |
+| [`08-frameworks.ipynb`](01-agentic-rag/08-frameworks.ipynb) | Reimplements the loop with ToyAIKit, compares manual and generated schemas, and inspects conversation results. |
+| [`09-other-frameworks.ipynb`](01-agentic-rag/09-other-frameworks.ipynb) | Compares production-oriented frameworks and explains when a simpler non-agent workflow is preferable. |
+
+### Supporting files
+
+| File | Purpose |
+| --- | --- |
+| [`ingest.py`](01-agentic-rag/ingest.py) | Downloads the FAQ data and builds the in-memory MinSearch index. |
+| [`rag_helper.py`](01-agentic-rag/rag_helper.py) | Defines reusable retrieval, context, prompt, and answer-generation logic. |
+| [`docker-compose.yml`](01-agentic-rag/docker-compose.yml) | Runs a single-node Elasticsearch service with persistent storage. |
+
+### Elasticsearch
+
+Start Elasticsearch from the repository root:
+
+```bash
+docker compose -f 01-agentic-rag/docker-compose.yml up -d
+docker compose -f 01-agentic-rag/docker-compose.yml ps
+```
+
+Confirm that the service is healthy and inspect its indexes:
+
+```bash
 curl http://localhost:9200
-~~~
+curl "http://localhost:9200/_cat/indices?v"
+```
 
-Stop the service when you are finished:
+#### Stopping and restarting
 
-~~~bash
-docker compose stop
-~~~
+Elasticsearch runs in Docker Desktop independently of VS Code. Closing VS Code or its integrated terminal does not stop the container.
 
-Elasticsearch data is stored in the named Docker volume `elasticsearch-data`, so indexes survive container restarts. Use `docker compose down --volumes` only when you also want to delete that persisted data.
+After a study session, stop Elasticsearch to release its memory:
 
-## Notebooks
+```bash
+docker compose -f 01-agentic-rag/docker-compose.yml stop
+```
 
-| File | Purpose |
-| --- | --- |
-| [`notebook.ipynb`](notebook.ipynb) | The full exploratory walkthrough. It starts with direct LLM calls and manually supplied context, downloads all Zoomcamp FAQ data, builds a MinSearch index, implements search/context/prompt/RAG functions, examines OpenAI response objects and token cost, tests course filtering, and finally repeats retrieval with Elasticsearch. |
-| [`rag_cleaned.ipynb`](rag_cleaned.ipynb) | A concise end-to-end in-memory RAG example. It uses `ingest.py` and `RAGBase` to build the FAQ index, answer sample questions, and demonstrate custom assistant instructions without the exploratory steps. |
-| [`rag_ingest.ipynb`](rag_ingest.ipynb) | A minimal ingestion and retrieval smoke test. It loads the FAQ data, builds the MinSearch index, constructs `RAGBase`, and runs a sample search for Docker-related material. |
-| [`persistent_ingest.ipynb`](persistent_ingest.ipynb) | The persistence-focused workflow. It filters LLM Zoomcamp FAQs, creates and inspects SQLitesearch databases, connects a persistent index to `RAGBase`, bulk-indexes the FAQ collection into Elasticsearch, and verifies that the Elasticsearch index survives a Docker restart. |
-| [`sqlite_rag.ipynb`](sqlite_rag.ipynb) | Reopens an existing SQLitesearch index in `faq.db`, runs full-text searches, and plugs that persistent index into `RAGBase` for an OpenAI-generated answer. Run an ingestion workflow first if `faq.db` does not yet exist. |
-| [`agent.ipynb`](agent.ipynb) | Extends the RAG workflow with OpenAI function calling. It exposes FAQ retrieval as an application-owned tool, executes the model's tool request, demonstrates both `previous_response_id` and manually replayed history, and calculates token usage and estimated cost. |
-| [`agentic_loop.ipynb`](agentic_loop.ipynb) | Builds the agent loop from first principles, including repeated tool calls, conversation memory, response-status checks, iteration limits, and grounding rules for off-topic questions. |
-| [`frameworks.ipynb`](frameworks.ipynb) | Reimplements the handwritten loop with ToyAIKit, compares manual and generated tool schemas, inspects `LoopResult`, and demonstrates follow-up and interactive conversations. |
-| [`other-frameworks.ipynb`](other-frameworks.ipynb) | Compares several production-oriented agent frameworks, offers selection criteria, and explains when a simpler non-agent workflow is preferable. |
+Resume the same container later:
 
-## Python and configuration files
+```bash
+docker compose -f 01-agentic-rag/docker-compose.yml start
+```
 
-| File | Purpose |
-| --- | --- |
-| [`ingest.py`](ingest.py) | Downloads the per-course FAQ JSON files, combines them into one document list, and provides a helper for building a MinSearch index over question, section, and answer fields with course filtering. |
-| [`rag_helper.py`](rag_helper.py) | Defines the reusable `RAGBase` class. It owns retrieval, context formatting, prompt construction, the OpenAI Responses API call, and the complete RAG sequence while accepting any index with a compatible `search` method. |
-| [`main.py`](main.py) | The generated project entry-point placeholder. It currently prints a greeting and is not part of the RAG workflow. |
-| [`docker-compose.yml`](docker-compose.yml) | Runs a single-node, security-disabled Elasticsearch 8.17.6 container on port 9200 with a health check and persistent named volume. |
-| [`pyproject.toml`](pyproject.toml) | Declares Python 3.12+ and the project dependencies: Elasticsearch, Jupyter, MinSearch, OpenAI, python-dotenv, Requests, SQLitesearch, and ToyAIKit. |
-| [`.python-version`](.python-version) | Pins the development Python version to 3.12. |
-| [`.gitignore`](.gitignore) | Excludes the virtual environment, API-key file, and generated SQLite database, shared-memory, and write-ahead-log files. |
+For a longer break, you can remove the container and network:
 
-## Generated and local-only files
+```bash
+docker compose -f 01-agentic-rag/docker-compose.yml down
+```
 
-The following are runtime artifacts rather than source files:
+Recreate them when needed:
 
-- `faq.db` and `faq_llm.db` are local SQLitesearch indexes created during experiments.
-- Files ending in `.db-shm` and `.db-wal` are SQLite working files.
-- `.venv/` is the uv-managed Python environment.
-- `__pycache__/` contains Python bytecode cache files.
-- `.env` stores local API credentials and must not be committed.
+```bash
+docker compose -f 01-agentic-rag/docker-compose.yml up -d
+```
 
-## Suggested learning path
+The Elasticsearch index is stored in the Docker volume `01-agentic-rag_elasticsearch-data`. This volume persists across VS Code restarts, Docker container restarts, `docker compose stop`, and ordinary `docker compose down` operations.
 
-1. Work through [`notebook.ipynb`](notebook.ipynb) to see each RAG component built from first principles.
-2. Review [`ingest.py`](ingest.py) and [`rag_helper.py`](rag_helper.py) to see the reusable implementation.
-3. Run [`rag_cleaned.ipynb`](rag_cleaned.ipynb) for the compact in-memory workflow.
-4. Use [`persistent_ingest.ipynb`](persistent_ingest.ipynb) to create and inspect persistent indexes.
-5. Reopen the SQLite index with [`sqlite_rag.ipynb`](sqlite_rag.ipynb) and compare its retrieval with Elasticsearch.
-6. Use [`agent.ipynb`](agent.ipynb) to let the model decide when and how to search through function calling.
-7. Build the complete repeated tool-use loop in [`agentic_loop.ipynb`](agentic_loop.ipynb).
-8. Compare the handwritten loop with ToyAIKit in [`frameworks.ipynb`](frameworks.ipynb).
-9. Finish with [`other-frameworks.ipynb`](other-frameworks.ipynb) to compare framework choices and decide when an agent is warranted.
+The Compose configuration uses `restart: unless-stopped`, so Elasticsearch may start automatically with Docker Desktop unless it was stopped manually.
+
+Do not include `--volumes` or `-v` with `docker compose down` unless you intentionally want to delete the Elasticsearch index. Likewise, do not manually remove `01-agentic-rag_elasticsearch-data` if you want to retain its data.
+
+### Suggested learning path
+
+1. Work through [`01-rag-basics.ipynb`](01-agentic-rag/01-rag-basics.ipynb) for the complete exploratory path.
+2. Review [`ingest.py`](01-agentic-rag/ingest.py) and [`rag_helper.py`](01-agentic-rag/rag_helper.py).
+3. Run [`02-rag-cleaned.ipynb`](01-agentic-rag/02-rag-cleaned.ipynb) and [`03-rag-ingest.ipynb`](01-agentic-rag/03-rag-ingest.ipynb) for the compact workflows.
+4. Create persistent indexes with [`04-persistent-ingest.ipynb`](01-agentic-rag/04-persistent-ingest.ipynb).
+5. Reopen the SQLite index with [`05-sqlite-rag.ipynb`](01-agentic-rag/05-sqlite-rag.ipynb).
+6. Introduce model-directed search in [`06-function-calling.ipynb`](01-agentic-rag/06-function-calling.ipynb).
+7. Build the full repeated tool-use loop in [`07-agentic-loop.ipynb`](01-agentic-rag/07-agentic-loop.ipynb).
+8. Compare the handwritten loop with ToyAIKit in [`08-frameworks.ipynb`](01-agentic-rag/08-frameworks.ipynb).
+9. Finish with [`09-other-frameworks.ipynb`](01-agentic-rag/09-other-frameworks.ipynb) to compare framework choices.
+
+## Dependency management
+
+The root [`pyproject.toml`](pyproject.toml) declares dependencies for the complete course repository. [`uv.lock`](uv.lock) records their exact resolved versions and should remain committed.
+
+Add future course dependencies from the repository root:
+
+```bash
+uv add package-name
+```
+
+Do not edit `uv.lock` manually; let `uv add`, `uv remove`, `uv sync`, and `uv lock` manage it.
