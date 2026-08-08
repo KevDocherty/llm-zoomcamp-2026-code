@@ -69,7 +69,7 @@ Restart the terminal if the installer asks you to update your shell, then confir
 uv --version
 ```
 
-### Install Python and project dependencies
+### Install Python and the declared packages
 
 The repository requests Python 3.12 through [`.python-version`](.python-version). If a compatible Python installation is not already available, `uv` can install it explicitly:
 
@@ -77,13 +77,15 @@ The repository requests Python 3.12 through [`.python-version`](.python-version)
 uv python install 3.12
 ```
 
-From the repository root, create the `.venv` environment and install the exact dependency versions recorded in `uv.lock`:
+From the repository root, run:
 
 ```bash
 uv sync
 ```
 
-You do not need to install the course packages one by one. `uv sync` reads `pyproject.toml`, resolves the locked environment, and installs both the direct packages and their transitive dependencies.
+This is the package-install command for the repository. On its first run, `uv sync` creates `.venv`, reads the packages already declared in the `[project].dependencies` list in `pyproject.toml`, and installs their exact locked versions from `uv.lock`, together with their transitive dependencies.
+
+If you cloned this repository, you do not need to run `uv add` or install the packages one by one. They are already declared and will all be installed by `uv sync`. The bootstrap command below is only for recreating the project dependency declarations from scratch.
 
 The direct packages currently used by the course repository are:
 
@@ -98,7 +100,35 @@ The direct packages currently used by the course repository are:
 | `sqlitesearch` | Persistent SQLite-backed full-text search examples |
 | `toyaikit` | Agent framework used in the framework-comparison notebooks |
 
+#### Bootstrap the dependency list from scratch
+
+If you are creating the project metadata from scratch and the packages are not yet listed in `pyproject.toml`, install and declare all current direct dependencies with:
+
+```bash
+uv add "elasticsearch==8.17.2" "jupyter>=1.1.1" "minsearch>=0.1.1" "openai>=2.43.0" "python-dotenv>=1.2.2" "requests>=2.34.2" "sqlitesearch>=0.1.2" "toyaikit>=0.0.11"
+```
+
+This single command installs the packages into `.venv`, writes the dependency constraints to `[project].dependencies` in `pyproject.toml`, and creates or updates `uv.lock`. After those files have been committed, another checkout can reproduce the environment with `uv sync`.
+
 Docker and the Elasticsearch server are system services and are not installed by `uv`.
+
+#### Add or remove a package later
+
+If a future module needs another Python package, add it from the repository root:
+
+```bash
+uv add package-name
+```
+
+Unlike `uv sync`, which installs the packages already declared, `uv add` changes the project definition. It adds the new direct dependency and its version constraint to `pyproject.toml`, updates the exact resolved versions in `uv.lock`, and installs the package into `.venv`.
+
+Remove a declared package with:
+
+```bash
+uv remove package-name
+```
+
+Use `uv add` rather than `uv pip install` for course dependencies so the package is recorded in `pyproject.toml`. After adding or removing a package, commit both `pyproject.toml` and `uv.lock`.
 
 ### Configure the API key
 
@@ -219,51 +249,3 @@ Do not include `--volumes` or `-v` with `docker compose down` unless you intenti
 7. Build the full repeated tool-use loop in [`07-agentic-loop.ipynb`](01-agentic-rag/07-agentic-loop.ipynb).
 8. Compare the handwritten loop with ToyAIKit in [`08-frameworks.ipynb`](01-agentic-rag/08-frameworks.ipynb).
 9. Finish with [`09-other-frameworks.ipynb`](01-agentic-rag/09-other-frameworks.ipynb) to compare framework choices.
-
-## Dependency management
-
-The root [`pyproject.toml`](pyproject.toml) declares the direct dependencies for the complete course repository. [`uv.lock`](uv.lock) records the exact resolved environment, including transitive dependencies, and should remain committed.
-
-### Install a new package from the command line
-
-Add a package from the repository root with `uv add`:
-
-```bash
-uv add package-name
-```
-
-For example:
-
-```bash
-uv add pandas
-uv add "numpy>=2.0"
-uv add pandas matplotlib
-```
-
-Each `uv add` command performs three related updates:
-
-1. It adds the direct dependency and its version constraint to the `[project].dependencies` list in `pyproject.toml`.
-2. It updates `uv.lock` with the exact resolved versions of that package and its transitive dependencies.
-3. It synchronizes the package into the project's `.venv` environment so it is immediately available to notebooks and `uv run` commands.
-
-For a development-only tool, such as a test runner or formatter, use `--dev`:
-
-```bash
-uv add --dev pytest
-```
-
-Use `uv add` instead of `uv pip install` for course dependencies. `uv pip install` can modify an environment without recording the package as a project dependency in `pyproject.toml`.
-
-### Remove or synchronize packages
-
-Remove an unused dependency with:
-
-```bash
-uv remove package-name
-```
-
-After pulling changes that modify `pyproject.toml` or `uv.lock`, run `uv sync` again to update the local environment.
-
-After adding or removing a dependency, review and commit both `pyproject.toml` and `uv.lock` so that other environments reproduce the same package set.
-
-Do not edit `uv.lock` manually; let `uv add`, `uv remove`, `uv sync`, and `uv lock` manage it.
