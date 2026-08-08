@@ -224,11 +224,37 @@ Do not include `--volumes` or `-v` with `docker compose down` unless you intenti
 
 The root [`pyproject.toml`](pyproject.toml) declares the direct dependencies for the complete course repository. [`uv.lock`](uv.lock) records the exact resolved environment, including transitive dependencies, and should remain committed.
 
-Add future course dependencies from the repository root:
+### Install a new package from the command line
+
+Add a package from the repository root with `uv add`:
 
 ```bash
 uv add package-name
 ```
+
+For example:
+
+```bash
+uv add pandas
+uv add "numpy>=2.0"
+uv add pandas matplotlib
+```
+
+Each `uv add` command performs three related updates:
+
+1. It adds the direct dependency and its version constraint to the `[project].dependencies` list in `pyproject.toml`.
+2. It updates `uv.lock` with the exact resolved versions of that package and its transitive dependencies.
+3. It synchronizes the package into the project's `.venv` environment so it is immediately available to notebooks and `uv run` commands.
+
+For a development-only tool, such as a test runner or formatter, use `--dev`:
+
+```bash
+uv add --dev pytest
+```
+
+Use `uv add` instead of `uv pip install` for course dependencies. `uv pip install` can modify an environment without recording the package as a project dependency in `pyproject.toml`.
+
+### Remove or synchronize packages
 
 Remove an unused dependency with:
 
@@ -237,5 +263,7 @@ uv remove package-name
 ```
 
 After pulling changes that modify `pyproject.toml` or `uv.lock`, run `uv sync` again to update the local environment.
+
+After adding or removing a dependency, review and commit both `pyproject.toml` and `uv.lock` so that other environments reproduce the same package set.
 
 Do not edit `uv.lock` manually; let `uv add`, `uv remove`, `uv sync`, and `uv lock` manage it.
