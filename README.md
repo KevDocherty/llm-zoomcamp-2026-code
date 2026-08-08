@@ -37,18 +37,70 @@ Additional numbered module directories will be added as the course progresses.
 
 ## Prerequisites
 
-- Python 3.12 or newer
-- [uv](https://docs.astral.sh/uv/) for dependency and environment management
+- [uv](https://docs.astral.sh/uv/) for Python, dependency, and environment management
 - Docker with Docker Compose for examples that use Elasticsearch
 - An OpenAI API key for notebooks that call OpenAI models
 
 ## Setup
 
-From the repository root, install the locked dependencies:
+### Install uv
+
+On macOS or Linux, install `uv` with the official standalone installer:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+On macOS, Homebrew is an alternative:
+
+```bash
+brew install uv
+```
+
+On Windows PowerShell, use:
+
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+Restart the terminal if the installer asks you to update your shell, then confirm that `uv` is available:
+
+```bash
+uv --version
+```
+
+### Install Python and project dependencies
+
+The repository requests Python 3.12 through [`.python-version`](.python-version). If a compatible Python installation is not already available, `uv` can install it explicitly:
+
+```bash
+uv python install 3.12
+```
+
+From the repository root, create the `.venv` environment and install the exact dependency versions recorded in `uv.lock`:
 
 ```bash
 uv sync
 ```
+
+You do not need to install the course packages one by one. `uv sync` reads `pyproject.toml`, resolves the locked environment, and installs both the direct packages and their transitive dependencies.
+
+The direct packages currently used by the course repository are:
+
+| Package | Purpose |
+| --- | --- |
+| `elasticsearch` | Python client for indexing and searching the Docker-hosted Elasticsearch service |
+| `jupyter` | Notebook server and interactive course environment |
+| `minsearch` | Lightweight in-memory text search used in the introductory RAG examples |
+| `openai` | OpenAI Responses API client used by the LLM and agent examples |
+| `python-dotenv` | Loads API keys and other local settings from `.env` |
+| `requests` | Downloads the DataTalks.Club FAQ datasets |
+| `sqlitesearch` | Persistent SQLite-backed full-text search examples |
+| `toyaikit` | Agent framework used in the framework-comparison notebooks |
+
+Docker and the Elasticsearch server are system services and are not installed by `uv`.
+
+### Configure the API key
 
 Create a root `.env` file for API-backed examples:
 
@@ -57,6 +109,8 @@ OPENAI_API_KEY=your-key-here
 ```
 
 The `.env` file, virtual environment, generated databases, and notebook checkpoints are excluded by `.gitignore`.
+
+### Start Jupyter
 
 Start Jupyter from the repository root:
 
@@ -168,12 +222,20 @@ Do not include `--volumes` or `-v` with `docker compose down` unless you intenti
 
 ## Dependency management
 
-The root [`pyproject.toml`](pyproject.toml) declares dependencies for the complete course repository. [`uv.lock`](uv.lock) records their exact resolved versions and should remain committed.
+The root [`pyproject.toml`](pyproject.toml) declares the direct dependencies for the complete course repository. [`uv.lock`](uv.lock) records the exact resolved environment, including transitive dependencies, and should remain committed.
 
 Add future course dependencies from the repository root:
 
 ```bash
 uv add package-name
 ```
+
+Remove an unused dependency with:
+
+```bash
+uv remove package-name
+```
+
+After pulling changes that modify `pyproject.toml` or `uv.lock`, run `uv sync` again to update the local environment.
 
 Do not edit `uv.lock` manually; let `uv add`, `uv remove`, `uv sync`, and `uv lock` manage it.
